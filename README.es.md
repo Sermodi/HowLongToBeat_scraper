@@ -13,17 +13,31 @@ Este paquete proporciona tanto una herramienta de línea de comandos como una AP
 
 ## Instalación
 
-Puedes instalar el paquete directamente desde el repositorio de Git:
+### Desde PyPI (Recomendado)
+
+Una vez que el paquete esté disponible en el Índice de Paquetes de Python oficial, podrás instalarlo usando `pip`:
 
 ```bash
-pip install git+https://github.com/tu_usuario/howlongtobeat-scraper.git
+pip install howlongtobeat-scraper
 ```
 
-O, si has clonado el repositorio localmente, puedes instalarlo en modo editable para desarrollo:
+*Nota: Este es el método de instalación previsto para el futuro.*
+
+### Desde TestPyPI
+
+Actualmente, el paquete está disponible en TestPyPI para evaluación. Puedes instalarlo con el siguiente comando:
 
 ```bash
-git clone https://github.com/tu_usuario/howlongtobeat-scraper.git
-cd howlongtobeat-scraper
+pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple howlongtobeat-scraper
+```
+
+### Desde el Código Fuente (para Desarrollo)
+
+Si quieres contribuir o instalar la última versión de desarrollo, puedes clonar el repositorio e instalarlo en modo editable:
+
+```bash
+git clone https://github.com/Sermodi/HowLongToBeat_scraper.git
+cd HowLongToBeat_scraper
 pip install -e .
 ```
 
@@ -31,31 +45,31 @@ pip install -e .
 
 ### Interfaz de Línea de Comandos (CLI)
 
-Una vez instalado, puedes usar el comando `howlongtobeat` seguido del nombre del juego entre comillas.
+Una vez instalado, puedes usar el comando `howlongtobeat` seguido del nombre del juego.
 
 ```bash
 howlongtobeat "The Witcher 3: Wild Hunt"
 ```
 
-Si el comando no se encuentra en tu PATH (común en Windows), puedes usar:
+Si el comando no se encuentra en tu PATH (un problema común en Windows), puedes ejecutar el paquete como un módulo:
 
 ```bash
 python -m howlongtobeat_scraper "The Witcher 3: Wild Hunt"
 ```
 
-**Salida de ejemplo:**
+**Salida de Ejemplo:**
 
 ```
 Buscando "The Witcher 3: Wild Hunt"...
 Título: The Witcher 3: Wild Hunt
 - Historia Principal: 51.5 horas
-- Historia Principal + Extras: 103 horas
+- Principal + Extras: 103 horas
 - Completista: 172 horas
 ```
 
 ### API de Python
 
-Importa la función `get_game_stats` para usarla en tu código. La función es síncrona y maneja el bucle de eventos de `asyncio` internamente.
+Importa la función `get_game_stats` para usarla en tu código. Es una función síncrona que gestiona internamente un bucle de eventos `asyncio` para el proceso de scraping.
 
 ```python
 from __future__ import annotations
@@ -81,11 +95,3 @@ def main():
 if __name__ == "__main__":
     main()
 ```
-
-## Desarrollo
-
-Para instalar las dependencias de desarrollo y ejecutar las pruebas, sigue estos pasos:
-
-1.  Clona el repositorio.
-2.  Crea y activa un entorno virtual.
-3.  Instala el paquete en modo editable: `pip install -e .`

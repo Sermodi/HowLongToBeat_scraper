@@ -13,13 +13,27 @@ This package provides both a command-line tool and a Python API to look up a gam
 
 ## Installation
 
-You can install the package directly from the Git repository:
+### From PyPI (Recommended)
+
+Once the package is available on the official Python Package Index, you can install it using `pip`:
 
 ```bash
-pip install git+https://github.com/Sermodi/HowLongToBeat_scraper.git
+pip install howlongtobeat-scraper
 ```
 
-Or, if you have cloned the repository locally, you can install it in editable mode for development:
+*Note: This is the future intended installation method.*
+
+### From TestPyPI
+
+Currently, the package is available on TestPyPI for evaluation. You can install it using the following command:
+
+```bash
+pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple howlongtobeat-scraper
+```
+
+### From Source (for Development)
+
+If you want to contribute or install the latest development version, you can clone the repository and install it in editable mode:
 
 ```bash
 git clone https://github.com/Sermodi/HowLongToBeat_scraper.git
@@ -31,19 +45,19 @@ pip install -e .
 
 ### Command-Line Interface (CLI)
 
-Once installed, you can use the `howlongtobeat` command followed by the game's name in quotes.
+Once installed, you can use the `howlongtobeat` command followed by the game's name.
 
 ```bash
 howlongtobeat "The Witcher 3: Wild Hunt"
 ```
 
-If the command is not found in your PATH (common on Windows), you can use:
+If the command is not found in your PATH (a common issue on Windows), you can run the package as a module:
 
 ```bash
 python -m howlongtobeat_scraper "The Witcher 3: Wild Hunt"
 ```
 
-**Example output:**
+**Example Output:**
 
 ```
 Searching for "The Witcher 3: Wild Hunt"...
@@ -55,7 +69,7 @@ Title: The Witcher 3: Wild Hunt
 
 ### Python API
 
-Import the `get_game_stats` function to use it in your code. The function is synchronous and handles the `asyncio` event loop internally.
+Import the `get_game_stats` function to use it in your code. It's a synchronous function that internally manages an `asyncio` event loop for the scraping process.
 
 ```python
 from __future__ import annotations
@@ -81,14 +95,6 @@ def main():
 if __name__ == "__main__":
     main()
 ```
-
-## Development
-
-To install development dependencies and run tests, follow these steps:
-
-1.  Clone the repository.
-2.  Create and activate a virtual environment.
-3.  Install the package in editable mode: `pip install -e .`
 
 ## Spanish Documentation
 
