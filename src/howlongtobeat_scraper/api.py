@@ -22,21 +22,27 @@ SELECTOR_TIMEOUT: Final[int] = 15000
 
 # --- Clases de Datos y Excepciones ---
 
+
 @dataclass
 class GameData:
     """Representa los datos de tiempo de juego para un videojuego."""
+
     title: str
     main_story: str | None = None
     main_extra: str | None = None
     completionist: str | None = None
 
+
 class ScraperError(Exception):
     """Excepción base para errores del scraper."""
+
 
 class GameNotFoundError(ScraperError):
     """Excepción para cuando un juego no se encuentra."""
 
+
 # --- Lógica del Scraper ---
+
 
 class BrowserManager:
     """Gestiona el ciclo de vida del navegador Playwright."""
@@ -73,25 +79,34 @@ class HowLongToBeatScraper:
         """Busca un juego y extrae sus datos de tiempo."""
         logging.debug(f"Iniciando scraper para: {game_name}")
         search_url = BASE_URL.format(game_name=game_name.replace(" ", "%20"))
-        
+
         try:
             await self._page.goto(search_url)
-            await self._page.wait_for_selector(GAME_CARD_SELECTOR, timeout=SELECTOR_TIMEOUT)
-            
+            await self._page.wait_for_selector(
+                GAME_CARD_SELECTOR, timeout=SELECTOR_TIMEOUT
+            )
+
             content = await self._page.content()
             soup = BeautifulSoup(content, "lxml")
-            
+
             game_element = soup.select_one(GAME_CARD_SELECTOR)
             if not game_element:
-                raise GameNotFoundError(f"No se encontraron resultados para '{game_name}'.")
+                raise GameNotFoundError(
+                    f"No se encontraron resultados para '{game_name}'."
+                )
 
             return self._parse_game_data(game_element)
 
         except TimeoutError:
             logging.warning(f"Timeout esperando los resultados para '{game_name}'.")
-            raise GameNotFoundError(f"No se pudo cargar la página de resultados para '{game_name}'.")
+            raise GameNotFoundError(
+                f"No se pudo cargar la página de resultados para '{game_name}'."
+            )
         except Exception as e:
-            logging.error(f"Error inesperado durante el scraping de '{game_name}': {e}", exc_info=True)
+            logging.error(
+                f"Error inesperado durante el scraping de '{game_name}': {e}",
+                exc_info=True,
+            )
             raise ScraperError(f"Fallo al obtener datos para '{game_name}'.") from e
 
     def _parse_game_data(self, game_element: Tag) -> GameData:
@@ -103,11 +118,11 @@ class HowLongToBeatScraper:
         times = {}
         for i in range(0, len(tidbit_elements), 2):
             category = tidbit_elements[i].text.strip()
-            time_value = tidbit_elements[i+1].text.strip().replace("½", ".5")
+            time_value = tidbit_elements[i + 1].text.strip().replace("½", ".5")
             if "Hours" in time_value:
                 time_value = time_value.split(" ")[0]
             times[category] = time_value
-        
+
         logging.debug(f"Datos extraídos para '{title}'.")
         return GameData(
             title=title,
@@ -116,7 +131,9 @@ class HowLongToBeatScraper:
             completionist=times.get("Completionist"),
         )
 
+
 # --- API Pública ---
+
 
 async def _get_game_data_async(game_name: str) -> GameData | None:
     """Wrapper asíncrono para la lógica del scraper."""
@@ -129,7 +146,9 @@ async def _get_game_data_async(game_name: str) -> GameData | None:
         logging.warning(f"El juego '{game_name}' no fue encontrado.")
         return None
     except ScraperError as e:
-        logging.error(f"No se pudieron obtener los datos para '{game_name}'. Causa: {e}")
+        logging.error(
+            f"No se pudieron obtener los datos para '{game_name}'. Causa: {e}"
+        )
         return None
 
 

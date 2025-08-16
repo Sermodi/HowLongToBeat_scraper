@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "howlongtobeat-scraper"
 version = "0.2.1"
 authors = [
-    {name = "Tu Nombre", email = "tu.email@example.com"},
+    {name = "Developer", email = "developer@example.com"},
 ]
 description = "Un scraper para obtener los tiempos de juego desde HowLongToBeat.com."
 readme = "README.md"
@@ -23,8 +23,8 @@ dependencies = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/tu_usuario/howlongtobeat_scrapper"
-"Bug Tracker" = "https://github.com/tu_usuario/howlongtobeat_scrapper/issues"
+"Homepage" = "https://github.com/yourusername/howlongtobeat_scrapper"
+"Bug Tracker" = "https://github.com/yourusername/howlongtobeat_scrapper/issues"
 
 [project.scripts]
 howlongtobeat = "howlongtobeat_scraper.__main__:main"

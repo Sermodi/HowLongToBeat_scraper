@@ -15,20 +15,25 @@ This package provides both a command-line tool and a Python API to look up a gam
 
 ### From PyPI (Recommended)
 
-Once the package is available on the official Python Package Index, you can install it using `pip`:
+Install the package from the official Python Package Index:
 
 ```bash
 pip install howlongtobeat-scraper
 ```
 
-*Note: This is the future intended installation method.*
+After installation, you may need to install Playwright browsers:
 
-### From TestPyPI
+```bash
+playwright install
+```
 
-Currently, the package is available on TestPyPI for evaluation. You can install it using the following command:
+### From TestPyPI (Development)
+
+For testing purposes, you can also install from TestPyPI:
 
 ```bash
 pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple howlongtobeat-scraper
+playwright install
 ```
 
 ### From Source (for Development)
