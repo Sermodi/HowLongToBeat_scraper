@@ -147,6 +147,9 @@ async def get_game_data(game_name: str, verbose: bool = False) -> GameData | Non
                 category = tidbit_elements[i].text.strip()
                 time_value = tidbit_elements[i+1].text.strip()
                 
+                # Reemplaza la fracción ½ por .5 para un parseo correcto.
+                time_value = time_value.replace('½', '.5')
+
                 if "Hours" in time_value:
                     time_value = time_value.split(" ")[0]
                 times[category] = time_value
