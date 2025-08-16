@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import argparse
 import asyncio
 import logging
 from dataclasses import dataclass
@@ -31,7 +30,7 @@ class GameData:
     completionist: str | None = None
 
 
-async def get_game_data(game_name: str) -> GameData | None:
+async def _get_game_data_async(game_name: str) -> GameData | None:
     """
     Obtiene los datos de tiempo de juego para un juego específico desde HowLongToBeat.
 
@@ -102,48 +101,17 @@ async def get_game_data(game_name: str) -> GameData | None:
             await browser.close()
 
 
-async def main():
-    """Función principal que parsea argumentos y ejecuta el scraper."""
-    parser = argparse.ArgumentParser(
-        description="Obtener datos de HowLongToBeat para uno o más juegos."
-    )
-    parser.add_argument(
-        "games",
-        metavar="GAME",
-        type=str,
-        nargs="+",
-        help="Nombre(s) del/de los juego(s) a buscar.",
-    )
-    parser.add_argument(
-        "-v",
-        "--verbose",
-        action="store_true",
-        help="Muestra logs detallados del proceso de scraping.",
-    )
+def get_game_stats(game_name: str) -> GameData | None:
+    """
+    Punto de entrada síncrono para obtener datos de un juego.
 
-    args = parser.parse_args()
+    Esta función es un 'wrapper' que ejecuta la lógica asíncrona del scraper
+    y devuelve el resultado. Es ideal para ser usada como una API de biblioteca.
 
-    # Configuración del logging
-    log_level = logging.DEBUG if args.verbose else logging.INFO
-    logging.basicConfig(
-        level=log_level,
-        format="%(asctime)s - %(levelname)s - %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
+    Args:
+        game_name: El nombre del juego a buscar.
 
-    for game_name in args.games:
-        logging.info(f"--- Buscando: {game_name} ---")
-        game_data = await get_game_data(game_name)
-
-        if game_data:
-            # La salida final se mantiene con print para una UI limpia
-            print(f"Título: {game_data.title}")
-            print(f"  Historia Principal: {game_data.main_story or 'N/A'}")
-            print(f"  Historia + Extras: {game_data.main_extra or 'N/A'}")
-            print(f"  Completista: {game_data.completionist or 'N/A'}")
-        else:
-            logging.warning(f"No se pudo obtener información para '{game_name}'.")
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
+    Returns:
+        Un objeto GameData si se encuentra, de lo contrario None.
+    """
+    return asyncio.run(_get_game_data_async(game_name))
