@@ -5,8 +5,9 @@ import logging
 from dataclasses import dataclass
 from typing import Final
 
-from bs4 import BeautifulSoup
-from playwright.async_api import async_playwright
+from bs4 import BeautifulSoup, Tag
+from playwright.async_api import Browser, Page, Playwright, async_playwright
+from playwright.async_api import TimeoutError
 
 # --- Constantes ---
 BASE_URL: Final[str] = "https://howlongtobeat.com/?q={game_name}"
@@ -17,9 +18,9 @@ USER_AGENT: Final[str] = (
 )
 GAME_CARD_SELECTOR: Final[str] = 'div[class*="GameCard_search_list_details"]'
 TIME_CATEGORY_SELECTOR: Final[str] = 'div[class*="GameCard_search_list_tidbit__"]'
-# Timeout para esperar selectores en la página (en milisegundos)
 SELECTOR_TIMEOUT: Final[int] = 15000
 
+# --- Clases de Datos y Excepciones ---
 
 @dataclass
 class GameData:
@@ -29,76 +30,107 @@ class GameData:
     main_extra: str | None = None
     completionist: str | None = None
 
+class ScraperError(Exception):
+    """Excepción base para errores del scraper."""
 
-async def _get_game_data_async(game_name: str) -> GameData | None:
-    """
-    Obtiene los datos de tiempo de juego para un juego específico desde HowLongToBeat.
+class GameNotFoundError(ScraperError):
+    """Excepción para cuando un juego no se encuentra."""
 
-    Args:
-        game_name: El nombre del juego a buscar.
+# --- Lógica del Scraper ---
 
-    Returns:
-        Un objeto GameData si se encuentra el juego, de lo contrario None.
-    """
-    logging.debug(f"Iniciando scraper para: {game_name}")
+class BrowserManager:
+    """Gestiona el ciclo de vida del navegador Playwright."""
 
-    async with async_playwright() as p:
-        browser = await p.chromium.launch()
-        context = await browser.new_context(user_agent=USER_AGENT)
-        page = await context.new_page()
+    def __init__(self, user_agent: str = USER_AGENT):
+        self._playwright: Playwright | None = None
+        self._browser: Browser | None = None
+        self._user_agent = user_agent
 
+    async def __aenter__(self) -> Browser:
+        self._playwright = await async_playwright().start()
+        self._browser = await self._playwright.chromium.launch()
+        return self._browser
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        if self._browser:
+            await self._browser.close()
+        if self._playwright:
+            await self._playwright.stop()
+
+    async def new_page(self) -> Page:
+        if not self._browser:
+            raise ScraperError("El navegador no ha sido inicializado.")
+        return await self._browser.new_page(user_agent=self._user_agent)
+
+
+class HowLongToBeatScraper:
+    """Encapsula la lógica para obtener datos de HowLongToBeat."""
+
+    def __init__(self, page: Page):
+        self._page = page
+
+    async def search(self, game_name: str) -> GameData:
+        """Busca un juego y extrae sus datos de tiempo."""
+        logging.debug(f"Iniciando scraper para: {game_name}")
         search_url = BASE_URL.format(game_name=game_name.replace(" ", "%20"))
-        logging.debug(f"Navegando a: {search_url}")
-
+        
         try:
-            await page.goto(search_url)
-
-            logging.debug("Esperando por el contenedor de resultados...")
-            await page.wait_for_selector(GAME_CARD_SELECTOR, timeout=SELECTOR_TIMEOUT)
-            logging.debug("Contenedor de resultados encontrado.")
-
-            content = await page.content()
+            await self._page.goto(search_url)
+            await self._page.wait_for_selector(GAME_CARD_SELECTOR, timeout=SELECTOR_TIMEOUT)
+            
+            content = await self._page.content()
             soup = BeautifulSoup(content, "lxml")
-
+            
             game_element = soup.select_one(GAME_CARD_SELECTOR)
             if not game_element:
-                logging.warning(f"No se encontraron resultados para '{game_name}'.")
-                return None
+                raise GameNotFoundError(f"No se encontraron resultados para '{game_name}'.")
 
-            logging.debug("Resultados encontrados. Extrayendo datos...")
-            title = game_element.select_one("a").text.strip()
+            return self._parse_game_data(game_element)
 
-            tidbit_elements = game_element.select(TIME_CATEGORY_SELECTOR)
-
-            times = {}
-            for i in range(0, len(tidbit_elements), 2):
-                category = tidbit_elements[i].text.strip()
-                time_value = tidbit_elements[i + 1].text.strip()
-
-                # Reemplaza la fracción ½ por .5 para un parseo correcto.
-                time_value = time_value.replace("½", ".5")
-
-                if "Hours" in time_value:
-                    time_value = time_value.split(" ")[0]
-                times[category] = time_value
-
-            logging.debug("Datos extraídos con éxito.")
-            return GameData(
-                title=title,
-                main_story=times.get("Main Story"),
-                main_extra=times.get("Main + Extra"),
-                completionist=times.get("Completionist"),
-            )
-
+        except TimeoutError:
+            logging.warning(f"Timeout esperando los resultados para '{game_name}'.")
+            raise GameNotFoundError(f"No se pudo cargar la página de resultados para '{game_name}'.")
         except Exception as e:
-            logging.error(
-                f"No se pudieron obtener los datos para '{game_name}'. Causa: {e}",
-                exc_info=True,
-            )
-            return None
-        finally:
-            logging.debug("Cerrando el navegador.")
-            await browser.close()
+            logging.error(f"Error inesperado durante el scraping de '{game_name}': {e}", exc_info=True)
+            raise ScraperError(f"Fallo al obtener datos para '{game_name}'.") from e
+
+    def _parse_game_data(self, game_element: Tag) -> GameData:
+        """Parsea el elemento HTML de la tarjeta del juego para extraer los datos."""
+        title_element = game_element.select_one("a")
+        title = title_element.text.strip() if title_element else "Título no encontrado"
+
+        tidbit_elements = game_element.select(TIME_CATEGORY_SELECTOR)
+        times = {}
+        for i in range(0, len(tidbit_elements), 2):
+            category = tidbit_elements[i].text.strip()
+            time_value = tidbit_elements[i+1].text.strip().replace("½", ".5")
+            if "Hours" in time_value:
+                time_value = time_value.split(" ")[0]
+            times[category] = time_value
+        
+        logging.debug(f"Datos extraídos para '{title}'.")
+        return GameData(
+            title=title,
+            main_story=times.get("Main Story"),
+            main_extra=times.get("Main + Extra"),
+            completionist=times.get("Completionist"),
+        )
+
+# --- API Pública ---
+
+async def _get_game_data_async(game_name: str) -> GameData | None:
+    """Wrapper asíncrono para la lógica del scraper."""
+    try:
+        async with BrowserManager() as browser:
+            page = await browser.new_page(user_agent=USER_AGENT)
+            scraper = HowLongToBeatScraper(page)
+            return await scraper.search(game_name)
+    except GameNotFoundError:
+        logging.warning(f"El juego '{game_name}' no fue encontrado.")
+        return None
+    except ScraperError as e:
+        logging.error(f"No se pudieron obtener los datos para '{game_name}'. Causa: {e}")
+        return None
 
 
 def get_game_stats(game_name: str) -> GameData | None:
