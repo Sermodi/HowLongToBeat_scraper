@@ -13,7 +13,7 @@ This package provides both a command-line tool and a Python API to look up a gam
 
 ## Installation
 
-### From PyPI (Recommended)
+### From PyPI (Official Release)
 
 Install the package from the official Python Package Index:
 
@@ -21,20 +21,13 @@ Install the package from the official Python Package Index:
 pip install howlongtobeat-scraper
 ```
 
-After installation, you may need to install Playwright browsers:
+After installation, you need to install Playwright browsers:
 
 ```bash
 playwright install
 ```
 
-### From TestPyPI (Development)
-
-For testing purposes, you can also install from TestPyPI:
-
-```bash
-pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple howlongtobeat-scraper
-playwright install
-```
+**Note**: The package is now officially available on PyPI at: https://pypi.org/project/howlongtobeat-scraper/
 
 ### From Source (for Development)
 
@@ -50,17 +43,13 @@ pip install -e .
 
 ### Command-Line Interface (CLI)
 
-Once installed, you can use the `howlongtobeat` command followed by the game's name.
-
-```bash
-howlongtobeat "The Witcher 3: Wild Hunt"
-```
-
-If the command is not found in your PATH (a common issue on Windows), you can run the package as a module:
+Once installed, you can run the package as a module:
 
 ```bash
 python -m howlongtobeat_scraper "The Witcher 3: Wild Hunt"
 ```
+
+**Note**: Use the module format above as it works consistently across all platforms.
 
 **Example Output:**
 
