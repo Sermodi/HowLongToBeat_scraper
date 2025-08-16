@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "howlongtobeat-scraper"
 version = "0.2.1"
 authors = [
-    {name = "Developer", email = "developer@example.com"},
+    {name = "Sermodi", email = "sermodsoftware@gmail.com"},
 ]
 description = "Un scraper para obtener los tiempos de juego desde HowLongToBeat.com."
 readme = "README.md"
