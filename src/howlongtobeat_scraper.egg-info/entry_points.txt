@@ -1,0 +1,2 @@
+[console_scripts]
+howlongtobeat = howlongtobeat_scraper.__main__:main

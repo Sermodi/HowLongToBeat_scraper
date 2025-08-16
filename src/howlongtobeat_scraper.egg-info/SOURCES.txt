@@ -1,0 +1,10 @@
+LICENSE
+README.md
+pyproject.toml
+setup.cfg
+src/howlongtobeat_scraper.egg-info/PKG-INFO
+src/howlongtobeat_scraper.egg-info/SOURCES.txt
+src/howlongtobeat_scraper.egg-info/dependency_links.txt
+src/howlongtobeat_scraper.egg-info/entry_points.txt
+src/howlongtobeat_scraper.egg-info/requires.txt
+src/howlongtobeat_scraper.egg-info/top_level.txt
