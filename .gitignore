@@ -1,0 +1,20 @@
+# Archivos de entorno virtual
+venv/
+.venv/
+
+# Archivos de caché de Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Archivos temporales del sistema operativo
+.DS_Store
+Thumbs.db
+
+# Archivos de configuración de IDEs
+.idea/
+.vscode/
+
+# Archivos temporales de mensajes de commit
+commit_message*.txt
