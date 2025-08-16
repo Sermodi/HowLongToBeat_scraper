@@ -23,8 +23,8 @@ dependencies = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/yourusername/howlongtobeat_scrapper"
-"Bug Tracker" = "https://github.com/yourusername/howlongtobeat_scrapper/issues"
+"Homepage" = "https://github.com/Sermodi/HowLongToBeat_scraper"
+"Bug Tracker" = "https://github.com/Sermodi/HowLongToBeat_scraper/issues"
 
 [project.scripts]
 howlongtobeat = "howlongtobeat_scraper.__main__:main"
