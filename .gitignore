@@ -18,3 +18,5 @@ Thumbs.db
 
 # Archivos temporales de mensajes de commit
 commit_message*.txt
+
+test_prod_apikeys
