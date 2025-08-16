@@ -4,8 +4,9 @@ Version: 0.2.0
 Summary: Un scraper para obtener los tiempos de juego desde HowLongToBeat.com.
 Home-page: https://github.com/tu_usuario/howlongtobeat_scrapper
 Author: Tu Nombre
-Author-email: tu.email@example.com
-License: MIT
+Author-email: Tu Nombre <tu.email@example.com>
+Project-URL: Homepage, https://github.com/tu_usuario/howlongtobeat_scrapper
+Project-URL: Bug Tracker, https://github.com/tu_usuario/howlongtobeat_scrapper/issues
 Classifier: Programming Language :: Python :: 3
 Classifier: License :: OSI Approved :: MIT License
 Classifier: Operating System :: OS Independent

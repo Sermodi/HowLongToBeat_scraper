@@ -2,6 +2,8 @@ LICENSE
 README.md
 pyproject.toml
 setup.cfg
+src/howlongtobeat_scraper/__main__.py
+src/howlongtobeat_scraper/api.py
 src/howlongtobeat_scraper.egg-info/PKG-INFO
 src/howlongtobeat_scraper.egg-info/SOURCES.txt
 src/howlongtobeat_scraper.egg-info/dependency_links.txt
