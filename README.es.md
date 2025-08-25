@@ -1,5 +1,10 @@
 # HowLongToBeat Scraper
 
+[![PyPI version](https://badge.fury.io/py/howlongtobeat-scraper.svg)](https://badge.fury.io/py/howlongtobeat-scraper)
+[![Python versions](https://img.shields.io/pypi/pyversions/howlongtobeat-scraper.svg)](https://pypi.org/project/howlongtobeat-scraper/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Downloads](https://pepy.tech/badge/howlongtobeat-scraper)](https://pepy.tech/project/howlongtobeat-scraper)
+
 Un paquete de Python para obtener los tiempos de juego de [HowLongToBeat](https://howlongtobeat.com).
 
 Este paquete proporciona tanto una herramienta de línea de comandos como una API de Python para buscar un juego y obtener sus tiempos estimados para completar la historia principal, extras y completarlo al 100%.
