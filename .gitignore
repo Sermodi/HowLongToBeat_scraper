@@ -18,3 +18,13 @@ Thumbs.db
 
 # Archivos temporales de mensajes de commit
 commit_message*.txt
+
+# Archivos de credenciales y test
+test_prod_apikeys
+test_env*/
+test_testpypi/
+
+# Archivos de build y distribución
+build/
+dist/
+*.egg-info/

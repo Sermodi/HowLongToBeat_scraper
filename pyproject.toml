@@ -1,3 +1,36 @@
 [build-system]
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "howlongtobeat-scraper"
+version = "0.2.1"
+authors = [
+    {name = "Sermodi", email = "sermodsoftware@gmail.com"},
+]
+description = "Un scraper para obtener los tiempos de juego desde HowLongToBeat.com."
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "playwright",
+    "beautifulsoup4",
+    "lxml",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/Sermodi/HowLongToBeat_scraper"
+"Bug Tracker" = "https://github.com/Sermodi/HowLongToBeat_scraper/issues"
+
+[project.scripts]
+howlongtobeat = "howlongtobeat_scraper.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-dir]
+"" = "src"

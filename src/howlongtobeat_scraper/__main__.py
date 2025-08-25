@@ -4,7 +4,7 @@ import argparse
 import logging
 
 # Hacemos una importación relativa desde el mismo paquete
-from .api import GameData, get_game_stats
+from .api import get_game_stats
 
 
 def main():

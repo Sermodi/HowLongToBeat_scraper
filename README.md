@@ -1,5 +1,11 @@
 # HowLongToBeat Scraper
 
+[![PyPI version](https://badge.fury.io/py/howlongtobeat-scraper.svg)](https://badge.fury.io/py/howlongtobeat-scraper)
+[![Python versions](https://img.shields.io/pypi/pyversions/howlongtobeat-scraper.svg)](https://pypi.org/project/howlongtobeat-scraper/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Downloads](https://pepy.tech/badge/howlongtobeat-scraper)](https://pepy.tech/project/howlongtobeat-scraper)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+
 A Python package to get game completion times from [HowLongToBeat](https://howlongtobeat.com).
 
 This package provides both a command-line tool and a Python API to look up a game and retrieve its estimated times for main story, extras, and 100% completion.
@@ -13,23 +19,21 @@ This package provides both a command-line tool and a Python API to look up a gam
 
 ## Installation
 
-### From PyPI (Recommended)
+### From PyPI (Official Release)
 
-Once the package is available on the official Python Package Index, you can install it using `pip`:
+Install the package from the official Python Package Index:
 
 ```bash
 pip install howlongtobeat-scraper
 ```
 
-*Note: This is the future intended installation method.*
-
-### From TestPyPI
-
-Currently, the package is available on TestPyPI for evaluation. You can install it using the following command:
+After installation, you need to install Playwright browsers:
 
 ```bash
-pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple howlongtobeat-scraper
+playwright install
 ```
+
+**Note**: The package is now officially available on PyPI at: https://pypi.org/project/howlongtobeat-scraper/
 
 ### From Source (for Development)
 
@@ -45,17 +49,13 @@ pip install -e .
 
 ### Command-Line Interface (CLI)
 
-Once installed, you can use the `howlongtobeat` command followed by the game's name.
-
-```bash
-howlongtobeat "The Witcher 3: Wild Hunt"
-```
-
-If the command is not found in your PATH (a common issue on Windows), you can run the package as a module:
+Once installed, you can run the package as a module:
 
 ```bash
 python -m howlongtobeat_scraper "The Witcher 3: Wild Hunt"
 ```
+
+**Note**: Use the module format above as it works consistently across all platforms.
 
 **Example Output:**
 
