@@ -4,7 +4,6 @@
 [![Python versions](https://img.shields.io/pypi/pyversions/howlongtobeat-scraper.svg)](https://pypi.org/project/howlongtobeat-scraper/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Downloads](https://pepy.tech/badge/howlongtobeat-scraper)](https://pepy.tech/project/howlongtobeat-scraper)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 A Python package to get game completion times from [HowLongToBeat](https://howlongtobeat.com).
 
