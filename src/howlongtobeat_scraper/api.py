@@ -12,8 +12,13 @@ from dataclasses import dataclass
 from typing import Any, Final
 
 from bs4 import BeautifulSoup, Tag
-from playwright.async_api import Browser, Page, Playwright, async_playwright
-from playwright.async_api import TimeoutError
+from playwright.async_api import (
+    Browser,
+    Page,
+    Playwright,
+    TimeoutError,
+    async_playwright,
+)
 
 # --- Constantes ---
 BASE_URL: Final[str] = "https://howlongtobeat.com/?q={game_name}"
@@ -32,13 +37,13 @@ SELECTOR_TIMEOUT: Final[int] = 15000
 @dataclass
 class GameData:
     """Representa los datos de tiempo de juego para un videojuego.
-    
+
     Attributes:
         title: El título del juego.
         main_story: Tiempo para completar la historia principal (en horas).
         main_extra: Tiempo para completar historia + extras (en horas).
         completionist: Tiempo para completar al 100% (en horas).
-        
+
     Example:
         >>> game = GameData(
         ...     title="The Witcher 3",
@@ -58,7 +63,7 @@ class GameData:
 
 class ScraperError(Exception):
     """Excepción base para errores del scraper.
-    
+
     Esta es la excepción base de la cual heredan todas las demás
     excepciones específicas del scraper.
     """
@@ -66,7 +71,7 @@ class ScraperError(Exception):
 
 class GameNotFoundError(ScraperError):
     """Excepción lanzada cuando un juego no se encuentra en HowLongToBeat.
-    
+
     Se lanza cuando la búsqueda no devuelve resultados para el juego especificado.
     """
 
@@ -76,15 +81,15 @@ class GameNotFoundError(ScraperError):
 
 class BrowserManager:
     """Gestiona el ciclo de vida del navegador Playwright.
-    
+
     Esta clase implementa el patrón context manager para gestionar automáticamente
     la inicialización y limpieza del navegador Playwright.
-    
+
     Args:
         user_agent: User agent string a utilizar para las peticiones HTTP.
         headless: Si el navegador debe ejecutarse en modo headless.
         timeout: Timeout por defecto para las operaciones del navegador.
-        
+
     Example:
         >>> async with BrowserManager() as browser:
         ...     page = await browser.new_page()
@@ -105,10 +110,10 @@ class BrowserManager:
 
     async def __aenter__(self) -> Browser:
         """Inicializa el navegador Playwright.
-        
+
         Returns:
             Instancia del navegador inicializada.
-            
+
         Raises:
             ScraperError: Si falla la inicialización del navegador.
         """
@@ -146,16 +151,16 @@ class BrowserManager:
 
     async def new_page(self) -> Page:
         """Crea una nueva página del navegador.
-        
+
         Returns:
             Nueva instancia de página configurada.
-            
+
         Raises:
             ScraperError: Si el navegador no ha sido inicializado.
         """
         if not self._browser:
             raise ScraperError("El navegador no ha sido inicializado.")
-        
+
         page = await self._browser.new_page(user_agent=self._user_agent)
         page.set_default_timeout(self._timeout)
         return page
@@ -163,13 +168,13 @@ class BrowserManager:
 
 class HowLongToBeatScraper:
     """Encapsula la lógica para obtener datos de HowLongToBeat.
-    
+
     Esta clase maneja el proceso de scraping de la página web de HowLongToBeat,
     incluyendo la navegación, extracción de datos y parsing del HTML.
-    
+
     Args:
         page: Instancia de página de Playwright para realizar el scraping.
-        
+
     Example:
         >>> async with BrowserManager() as browser:
         ...     page = await browser.new_page()
@@ -183,20 +188,20 @@ class HowLongToBeatScraper:
 
     async def search(self, game_name: str) -> GameData:
         """Busca un juego y extrae sus datos de tiempo.
-        
+
         Args:
             game_name: Nombre del juego a buscar.
-            
+
         Returns:
             Datos del juego encontrado.
-            
+
         Raises:
             GameNotFoundError: Si no se encuentra el juego o no se puede cargar la página.
             ScraperError: Si ocurre un error durante el scraping.
         """
         if not game_name.strip():
             raise ValueError("El nombre del juego no puede estar vacío")
-            
+
         logging.debug(f"Iniciando scraper para: {game_name}")
         search_url = BASE_URL.format(game_name=game_name.replace(" ", "%20"))
 
@@ -233,23 +238,25 @@ class HowLongToBeatScraper:
 
     def _parse_game_data(self, game_element: Tag) -> GameData:
         """Parsea el elemento HTML de la tarjeta del juego para extraer los datos.
-        
+
         Args:
             game_element: Elemento HTML que contiene los datos del juego.
-            
+
         Returns:
             Datos parseados del juego.
-            
+
         Raises:
             ScraperError: Si no se pueden parsear los datos correctamente.
         """
         try:
             title_element = game_element.select_one("a")
-            title = title_element.text.strip() if title_element else "Título no encontrado"
+            title = (
+                title_element.text.strip() if title_element else "Título no encontrado"
+            )
 
             tidbit_elements = game_element.select(TIME_CATEGORY_SELECTOR)
             times: dict[str, str] = {}
-            
+
             for i in range(0, len(tidbit_elements), 2):
                 if i + 1 < len(tidbit_elements):
                     category = tidbit_elements[i].text.strip()
@@ -275,13 +282,13 @@ class HowLongToBeatScraper:
 
 async def _get_game_data_async(game_name: str) -> GameData | None:
     """Wrapper asíncrono para la lógica del scraper.
-    
+
     Args:
         game_name: Nombre del juego a buscar.
-        
+
     Returns:
         Datos del juego si se encuentra, None en caso contrario.
-        
+
     Note:
         Esta función maneja internamente las excepciones y devuelve None
         en lugar de propagarlas para facilitar el uso de la API.
@@ -318,19 +325,19 @@ def get_game_stats(game_name: str) -> GameData | None:
 
     Returns:
         Un objeto GameData si se encuentra, None en caso contrario.
-        
+
     Example:
         >>> data = get_game_stats("The Witcher 3")
         >>> if data:
         ...     print(f"{data.title}: {data.main_story}h")
         ... else:
         ...     print("Juego no encontrado")
-        
+
     Note:
         Esta función bloquea hasta completar la operación. Para uso asíncrono,
         utiliza directamente _get_game_data_async().
     """
     if not isinstance(game_name, str):
         raise TypeError("game_name debe ser una cadena de texto")
-    
+
     return asyncio.run(_get_game_data_async(game_name))

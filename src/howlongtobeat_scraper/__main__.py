@@ -16,7 +16,7 @@ from .api import get_game_stats
 
 def setup_logging(verbose: bool) -> None:
     """Configura el sistema de logging.
-    
+
     Args:
         verbose: Si debe mostrar logs detallados (DEBUG) o solo INFO.
     """
@@ -30,7 +30,7 @@ def setup_logging(verbose: bool) -> None:
 
 def print_game_data(game_name: str, game_data: object) -> None:
     """Imprime los datos del juego de forma formateada.
-    
+
     Args:
         game_name: Nombre del juego buscado.
         game_data: Datos del juego o None si no se encontró.
@@ -47,7 +47,7 @@ def print_game_data(game_name: str, game_data: object) -> None:
 
 def create_parser() -> argparse.ArgumentParser:
     """Crea y configura el parser de argumentos.
-    
+
     Returns:
         Parser de argumentos configurado.
     """
@@ -79,7 +79,7 @@ def create_parser() -> argparse.ArgumentParser:
 
 def main() -> NoReturn:
     """Función principal que parsea argumentos y ejecuta el scraper.
-    
+
     Esta función no retorna normalmente, siempre termina con sys.exit().
     """
     parser = create_parser()
@@ -92,14 +92,14 @@ def main() -> NoReturn:
 
     for game_name in args.games:
         logging.info(f"--- Buscando: {game_name} ---")
-        
+
         try:
             game_data = get_game_stats(game_name)
             print_game_data(game_name, game_data)
-            
+
             if game_data:
                 success_count += 1
-                
+
         except KeyboardInterrupt:
             print("\nOperación cancelada por el usuario.")
             sys.exit(1)
@@ -111,7 +111,7 @@ def main() -> NoReturn:
     # Resumen final
     if total_count > 1:
         print(f"Procesados {success_count}/{total_count} juegos exitosamente.")
-    
+
     # Código de salida: 0 si todos exitosos, 1 si algunos fallaron
     exit_code = 0 if success_count == total_count else 1
     sys.exit(exit_code)

@@ -1,8 +1,9 @@
 """Configuración y fixtures para pytest."""
 
-import pytest
-from unittest.mock import MagicMock, AsyncMock
 from typing import Generator
+from unittest.mock import AsyncMock, MagicMock
+
+import pytest
 
 from src.howlongtobeat_scraper.api import GameData
 
@@ -14,7 +15,7 @@ def sample_game_data() -> GameData:
         title="The Witcher 3: Wild Hunt",
         main_story="51",
         main_extra="103",
-        completionist="173"
+        completionist="173",
     )
 
 
@@ -63,7 +64,7 @@ def pytest_collection_modifyitems(config, items):
         # Marca tests que contengan 'integration' en el nombre
         if "integration" in item.nodeid.lower():
             item.add_marker(pytest.mark.integration)
-        
+
         # Marca tests que contengan 'real' en el nombre como lentos
         if "real" in item.nodeid.lower():
             item.add_marker(pytest.mark.slow)
