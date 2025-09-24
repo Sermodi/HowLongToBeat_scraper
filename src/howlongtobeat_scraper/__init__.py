@@ -10,11 +10,11 @@ from __future__ import annotations
 
 from .api import (
     GameData,
+    GameNotFoundError,
     HowLongToBeatScraper,
+    ScraperError,
     get_game_stats,
     get_game_stats_smart,
-    ScraperError,
-    GameNotFoundError,
 )
 
 __version__ = "1.0.4"
@@ -22,10 +22,10 @@ __author__ = "Sermodi"
 __email__ = "sermodsoftware@gmail.com"
 
 __all__ = [
+    "GameData",
+    "GameNotFoundError",
     "HowLongToBeatScraper",
+    "ScraperError",
     "get_game_stats",
     "get_game_stats_smart",
-    "GameData",
-    "ScraperError",
-    "GameNotFoundError",
 ]

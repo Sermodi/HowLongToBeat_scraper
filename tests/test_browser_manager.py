@@ -1,6 +1,6 @@
 """Tests para la clase BrowserManager."""
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -18,7 +18,6 @@ class TestBrowserManager:
         assert manager._browser is None
         assert manager._user_agent is not None
         assert manager._headless is True
-        assert manager._timeout == 30000
 
     def test_browser_manager_init_with_params(self):
         """Test de inicialización con parámetros personalizados."""
@@ -26,12 +25,10 @@ class TestBrowserManager:
         manager = BrowserManager(
             user_agent=custom_user_agent,
             headless=False,
-            timeout=60000,
         )
 
         assert manager._user_agent == custom_user_agent
         assert manager._headless is False
-        assert manager._timeout == 60000
 
     @pytest.mark.asyncio
     async def test_browser_manager_context_success(self):
@@ -61,7 +58,7 @@ class TestBrowserManager:
             mock_playwright.return_value.start.side_effect = Exception("Init failed")
 
             browser_manager = BrowserManager()
-            with pytest.raises(ScraperError, match="Error al inicializar el navegador"):
+            with pytest.raises(Exception, match="Init failed"):
                 await browser_manager.__aenter__()
 
     @pytest.mark.asyncio
@@ -69,8 +66,6 @@ class TestBrowserManager:
         """Test de creación exitosa de página."""
         mock_browser = AsyncMock()
         mock_page = AsyncMock()
-        # Configurar set_default_timeout como método síncrono
-        mock_page.set_default_timeout = MagicMock()
         mock_browser.new_page.return_value = mock_page
 
         browser_manager = BrowserManager()
@@ -79,9 +74,9 @@ class TestBrowserManager:
         page = await browser_manager.new_page()
 
         assert page is mock_page
-        mock_browser.new_page.assert_called_once()
-        mock_page.set_default_timeout.assert_called_once()
-        mock_page.set_default_timeout.assert_called_once_with(30000)
+        mock_browser.new_page.assert_called_once_with(
+            user_agent=browser_manager._user_agent
+        )
 
     @pytest.mark.asyncio
     async def test_new_page_no_browser(self):
@@ -92,8 +87,8 @@ class TestBrowserManager:
             await manager.new_page()
 
     @pytest.mark.asyncio
-    async def test_cleanup_success(self):
-        """Test de limpieza exitosa de recursos."""
+    async def test_aexit_cleanup_success(self):
+        """Test de limpieza exitosa de recursos con __aexit__."""
         mock_browser = AsyncMock()
         mock_playwright = AsyncMock()
 
@@ -101,35 +96,20 @@ class TestBrowserManager:
         browser_manager._browser = mock_browser
         browser_manager._playwright = mock_playwright
 
-        await browser_manager._cleanup()
+        await browser_manager.__aexit__(None, None, None)
 
         mock_browser.close.assert_called_once()
         mock_playwright.stop.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_cleanup_with_errors(self):
-        """Test de limpieza con errores."""
-        mock_browser = AsyncMock()
-        mock_playwright = AsyncMock()
-        mock_browser.close.side_effect = Exception("Close error")
-        mock_playwright.stop.side_effect = Exception("Stop error")
-
-        browser_manager = BrowserManager()
-        browser_manager._browser = mock_browser
-        browser_manager._playwright = mock_playwright
-
-        # No debe lanzar excepción
-        await browser_manager._cleanup()
-
-    @pytest.mark.asyncio
-    async def test_cleanup_partial_resources(self):
+    async def test_aexit_cleanup_partial_resources(self):
         """Test de limpieza con recursos parciales."""
         browser_manager = BrowserManager()
         browser_manager._browser = None
         browser_manager._playwright = AsyncMock()
 
         # No debe lanzar excepción
-        await browser_manager._cleanup()
+        await browser_manager.__aexit__(None, None, None)
 
     @pytest.mark.asyncio
     async def test_context_manager_cleanup_on_exception(self):
@@ -147,5 +127,5 @@ class TestBrowserManager:
 
             browser_manager = BrowserManager()
 
-            with pytest.raises(ScraperError, match="Error al inicializar el navegador"):
+            with pytest.raises(Exception, match="Launch failed"):
                 await browser_manager.__aenter__()

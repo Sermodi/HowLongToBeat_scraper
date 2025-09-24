@@ -40,7 +40,7 @@ class TestPublicAPI:
                 mock_scraper.search.return_value = mock_game_data
                 mock_scraper_class.return_value = mock_scraper
 
-                result = await _get_game_data_async("Test Game", headless=True)
+                result = await _get_game_data_async("Test Game")
 
                 assert result == mock_game_data
                 mock_scraper.search.assert_called_once_with("Test Game")
@@ -53,7 +53,7 @@ class TestPublicAPI:
         ) as mock_browser_manager:
             mock_browser_manager.side_effect = ScraperError("Browser error")
 
-            result = await _get_game_data_async("Test Game", headless=True)
+            result = await _get_game_data_async("Test Game")
             assert result is None
 
     @pytest.mark.asyncio
@@ -76,7 +76,7 @@ class TestPublicAPI:
                     "Game not found"
                 )
 
-                result = await _get_game_data_async("Test Game", headless=True)
+                result = await _get_game_data_async("Test Game")
                 assert result is None
 
     def test_get_game_stats_success(self):
@@ -93,7 +93,7 @@ class TestPublicAPI:
             result = get_game_stats("Test Game")
 
             assert result == mock_game_data
-            mock_async.assert_called_once_with("Test Game", True)
+            mock_async.assert_called_once_with("Test Game")
 
     def test_get_game_stats_invalid_input(self):
         """Test de entrada inválida."""

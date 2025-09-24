@@ -9,7 +9,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from dataclasses import dataclass
-from typing import Any, Final
+from typing import Final
 
 from bs4 import BeautifulSoup, Tag
 from playwright.async_api import (
@@ -99,7 +99,7 @@ class BrowserManager:
         if self._playwright:
             await self._playwright.stop()
 
-    async def new_page(self, user_agent: str = None) -> Page:
+    async def new_page(self, user_agent: str | None = None) -> Page:
         if not self._browser:
             raise ScraperError("El navegador no ha sido inicializado.")
         ua = user_agent or self._user_agent
@@ -147,30 +147,31 @@ class HowLongToBeatScraper:
 
         try:
             # Configuraciones anti-detección para la página
-            await self._page.add_init_script("""
+            await self._page.add_init_script(
+                """
                 Object.defineProperty(navigator, 'webdriver', {
                     get: () => undefined,
                 });
-                
+
                 Object.defineProperty(navigator, 'plugins', {
                     get: () => [1, 2, 3, 4, 5],
                 });
-                
+
                 Object.defineProperty(navigator, 'languages', {
                     get: () => ['en-US', 'en'],
                 });
-                
                 window.chrome = {
                     runtime: {},
                 };
-            """)
-            
+            """
+            )
+
             # Navegar con configuraciones adicionales
             await self._page.goto(search_url, wait_until="domcontentloaded")
-            
+
             # Esperar un poco para que la página se cargue completamente
             await self._page.wait_for_timeout(1000)
-            
+
             await self._page.wait_for_selector(
                 GAME_CARD_SELECTOR, timeout=SELECTOR_TIMEOUT
             )
@@ -246,13 +247,13 @@ class HowLongToBeatScraper:
 
 async def _get_game_data_with_fallback_async(game_name: str) -> GameData | None:
     """Intenta obtener datos del juego con estrategia de fallback automático.
-    
+
     Primero intenta en modo headless (invisible). Si falla, reintenta en modo
     no-headless (visible) para evitar detección de bots.
-    
+
     Args:
         game_name: Nombre del juego a buscar.
-        
+
     Returns:
         Datos del juego si se encuentra, None en caso contrario.
     """
@@ -267,7 +268,7 @@ async def _get_game_data_with_fallback_async(game_name: str) -> GameData | None:
             return result
     except (GameNotFoundError, ScraperError) as e:
         logging.warning(f"Falló búsqueda headless para '{game_name}': {e}")
-    
+
     # Segundo intento: modo no-headless (visible) como fallback
     logging.debug(f"Intentando búsqueda en modo visible para: {game_name}")
     try:
