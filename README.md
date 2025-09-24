@@ -68,18 +68,25 @@ Title: The Witcher 3: Wild Hunt
 
 ### Python API
 
-Import the `get_game_stats` function to use it in your code. It's a synchronous function that internally manages an `asyncio` event loop for the scraping process.
+The package provides two main functions for retrieving game data:
+
+#### Recommended: `get_game_stats_smart` (with automatic fallback)
+
+This is the **recommended** function that automatically handles browser visibility for you:
 
 ```python
 from __future__ import annotations
-from howlongtobeat_scraper.api import get_game_stats, GameData
+from howlongtobeat_scraper.api import get_game_stats_smart, GameData
 
 def main():
     game_name = "Celeste"
     print(f"--- Fetching data for: {game_name} ---")
 
     try:
-        game_data: GameData | None = get_game_stats(game_name)
+        # Smart function with automatic fallback
+        # Tries headless first, falls back to visible mode if needed
+        game_data: GameData | None = get_game_stats_smart(game_name)
+        
         if game_data:
             print("API call successful. Data received:")
             print(f"  Title: {game_data.title}")
@@ -94,6 +101,52 @@ def main():
 if __name__ == "__main__":
     main()
 ```
+
+#### Manual control: `get_game_stats`
+
+For manual control over browser visibility, you can use the original function:
+
+```python
+from howlongtobeat_scraper.api import get_game_stats
+
+# Always headless (invisible browser)
+game_data = get_game_stats("Game Name")
+
+# Always visible browser (for debugging or when headless fails)
+game_data = get_game_stats("Game Name", headless=False)
+```
+
+### Browser Visibility and Fallback Strategy
+
+#### Automatic Fallback (Recommended)
+
+The `get_game_stats_smart` function implements an intelligent fallback strategy:
+
+1. **First attempt**: Tries headless mode (invisible browser) for better performance
+2. **Automatic fallback**: If headless fails due to bot detection, automatically retries with visible browser
+3. **User-friendly**: Minimizes browser visibility while ensuring reliability
+
+```python
+# Recommended: automatic fallback strategy
+data = get_game_stats_smart("Game Name")
+```
+
+#### Manual Control
+
+For specific use cases, you can manually control browser visibility with `get_game_stats`:
+
+- **`get_game_stats("Game Name")`**: Always uses headless mode (invisible)
+- **`get_game_stats("Game Name", headless=False)`**: Always shows browser window
+
+```python
+# Always headless (faster but may fail on some sites)
+data = get_game_stats("Game Name")
+
+# Always visible (more reliable but shows browser window)
+data = get_game_stats("Game Name", headless=False)
+```
+
+**Recommendation**: Use `get_game_stats_smart()` for the best balance of performance and reliability.
 
 ## Spanish Documentation
 
