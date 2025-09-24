@@ -85,13 +85,15 @@ class TestPublicAPI:
             title="Test Game", main_story="10", main_extra="15", completionist="20"
         )
 
-        with patch("asyncio.run") as mock_asyncio_run:
-            mock_asyncio_run.return_value = mock_game_data
+        with patch(
+            "src.howlongtobeat_scraper.api._get_game_data_async", new_callable=AsyncMock
+        ) as mock_async:
+            mock_async.return_value = mock_game_data
 
             result = get_game_stats("Test Game")
 
             assert result == mock_game_data
-            mock_asyncio_run.assert_called_once()
+            mock_async.assert_called_once_with("Test Game")
 
     def test_get_game_stats_invalid_input(self):
         """Test de entrada inválida."""
@@ -100,7 +102,9 @@ class TestPublicAPI:
 
     def test_get_game_stats_game_not_found(self):
         """Test de juego no encontrado."""
-        with patch("src.howlongtobeat_scraper.api._get_game_data_async") as mock_async:
+        with patch(
+            "src.howlongtobeat_scraper.api._get_game_data_async", new_callable=AsyncMock
+        ) as mock_async:
             mock_async.return_value = None
 
             result = get_game_stats("Nonexistent Game")
@@ -108,7 +112,9 @@ class TestPublicAPI:
 
     def test_get_game_stats_scraper_error(self):
         """Test de error del scraper."""
-        with patch("src.howlongtobeat_scraper.api._get_game_data_async") as mock_async:
+        with patch(
+            "src.howlongtobeat_scraper.api._get_game_data_async", new_callable=AsyncMock
+        ) as mock_async:
             mock_async.return_value = None
 
             result = get_game_stats("Test Game")
@@ -116,7 +122,9 @@ class TestPublicAPI:
 
     def test_get_game_stats_unexpected_error(self):
         """Test de error inesperado."""
-        with patch("src.howlongtobeat_scraper.api._get_game_data_async") as mock_async:
+        with patch(
+            "src.howlongtobeat_scraper.api._get_game_data_async", new_callable=AsyncMock
+        ) as mock_async:
             mock_async.return_value = None
 
             result = get_game_stats("Test Game")
@@ -124,7 +132,9 @@ class TestPublicAPI:
 
     def test_get_game_stats_exception_error(self):
         """Test de excepción general."""
-        with patch("src.howlongtobeat_scraper.api._get_game_data_async") as mock_async:
+        with patch(
+            "src.howlongtobeat_scraper.api._get_game_data_async", new_callable=AsyncMock
+        ) as mock_async:
             mock_async.return_value = None
 
             result = get_game_stats("Test Game")

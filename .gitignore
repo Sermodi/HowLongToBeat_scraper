@@ -1,20 +1,32 @@
 # Archivos de entorno virtual
 venv/
 .venv/
+env/
+ENV/
 
 # Archivos de caché de Python
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
+.Python
+*.so
 
 # Archivos temporales del sistema operativo
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
 
 # Archivos de configuración de IDEs
 .idea/
 .vscode/
+*.swp
+*.swo
+*~
 
 # Archivos temporales de mensajes de commit
 commit_message*.txt
@@ -28,3 +40,59 @@ test_testpypi/
 build/
 dist/
 *.egg-info/
+.eggs/
+*.egg
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# PEP 582
+__pypackages__/
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# Bandit security linter
+.bandit
+
+# Ruff
+.ruff_cache/
+
+# Documentation builds
+docs/_build/
