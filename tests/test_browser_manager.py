@@ -1,6 +1,6 @@
 """Tests para la clase BrowserManager."""
 
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -69,6 +69,8 @@ class TestBrowserManager:
         """Test de creación exitosa de página."""
         mock_browser = AsyncMock()
         mock_page = AsyncMock()
+        # Configurar set_default_timeout como método síncrono
+        mock_page.set_default_timeout = MagicMock()
         mock_browser.new_page.return_value = mock_page
 
         browser_manager = BrowserManager()
@@ -78,6 +80,7 @@ class TestBrowserManager:
 
         assert page is mock_page
         mock_browser.new_page.assert_called_once()
+        mock_page.set_default_timeout.assert_called_once()
         mock_page.set_default_timeout.assert_called_once_with(30000)
 
     @pytest.mark.asyncio

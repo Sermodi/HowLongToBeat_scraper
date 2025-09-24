@@ -80,90 +80,30 @@ class GameNotFoundError(ScraperError):
 
 
 class BrowserManager:
-    """Gestiona el ciclo de vida del navegador Playwright.
+    """Gestiona el ciclo de vida del navegador Playwright."""
 
-    Esta clase implementa el patrón context manager para gestionar automáticamente
-    la inicialización y limpieza del navegador Playwright.
-
-    Args:
-        user_agent: User agent string a utilizar para las peticiones HTTP.
-        headless: Si el navegador debe ejecutarse en modo headless.
-        timeout: Timeout por defecto para las operaciones del navegador.
-
-    Example:
-        >>> async with BrowserManager() as browser:
-        ...     page = await browser.new_page()
-        ...     await page.goto("https://example.com")
-    """
-
-    def __init__(
-        self,
-        user_agent: str = USER_AGENT,
-        headless: bool = True,
-        timeout: int = 30000,
-    ) -> None:
+    def __init__(self, user_agent: str = USER_AGENT, headless: bool = True):
         self._playwright: Playwright | None = None
         self._browser: Browser | None = None
         self._user_agent = user_agent
         self._headless = headless
-        self._timeout = timeout
 
     async def __aenter__(self) -> Browser:
-        """Inicializa el navegador Playwright.
+        self._playwright = await async_playwright().start()
+        self._browser = await self._playwright.chromium.launch(headless=self._headless)
+        return self._browser
 
-        Returns:
-            Instancia del navegador inicializada.
-
-        Raises:
-            ScraperError: Si falla la inicialización del navegador.
-        """
-        try:
-            self._playwright = await async_playwright().start()
-            self._browser = await self._playwright.chromium.launch(
-                headless=self._headless
-            )
-            return self._browser
-        except Exception as e:
-            await self._cleanup()
-            raise ScraperError(f"Error al inicializar el navegador: {e}") from e
-
-    async def __aexit__(
-        self,
-        exc_type: type[BaseException] | None,
-        exc_val: BaseException | None,
-        exc_tb: Any,
-    ) -> None:
-        """Limpia los recursos del navegador."""
-        await self._cleanup()
-
-    async def _cleanup(self) -> None:
-        """Limpia los recursos del navegador de forma segura."""
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
         if self._browser:
-            try:
-                await self._browser.close()
-            except Exception:
-                logging.warning("Error al cerrar el navegador", exc_info=True)
+            await self._browser.close()
         if self._playwright:
-            try:
-                await self._playwright.stop()
-            except Exception:
-                logging.warning("Error al detener Playwright", exc_info=True)
+            await self._playwright.stop()
 
-    async def new_page(self) -> Page:
-        """Crea una nueva página del navegador.
-
-        Returns:
-            Nueva instancia de página configurada.
-
-        Raises:
-            ScraperError: Si el navegador no ha sido inicializado.
-        """
+    async def new_page(self, user_agent: str = None) -> Page:
         if not self._browser:
             raise ScraperError("El navegador no ha sido inicializado.")
-
-        page = await self._browser.new_page(user_agent=self._user_agent)
-        page.set_default_timeout(self._timeout)
-        return page
+        ua = user_agent or self._user_agent
+        return await self._browser.new_page(user_agent=ua)
 
 
 class HowLongToBeatScraper:
@@ -206,7 +146,31 @@ class HowLongToBeatScraper:
         search_url = BASE_URL.format(game_name=game_name.replace(" ", "%20"))
 
         try:
-            await self._page.goto(search_url)
+            # Configuraciones anti-detección para la página
+            await self._page.add_init_script("""
+                Object.defineProperty(navigator, 'webdriver', {
+                    get: () => undefined,
+                });
+                
+                Object.defineProperty(navigator, 'plugins', {
+                    get: () => [1, 2, 3, 4, 5],
+                });
+                
+                Object.defineProperty(navigator, 'languages', {
+                    get: () => ['en-US', 'en'],
+                });
+                
+                window.chrome = {
+                    runtime: {},
+                };
+            """)
+            
+            # Navegar con configuraciones adicionales
+            await self._page.goto(search_url, wait_until="domcontentloaded")
+            
+            # Esperar un poco para que la página se cargue completamente
+            await self._page.wait_for_timeout(1000)
+            
             await self._page.wait_for_selector(
                 GAME_CARD_SELECTOR, timeout=SELECTOR_TIMEOUT
             )
@@ -280,28 +244,58 @@ class HowLongToBeatScraper:
 # --- API Pública ---
 
 
-async def _get_game_data_async(game_name: str) -> GameData | None:
-    """Wrapper asíncrono para la lógica del scraper.
-
+async def _get_game_data_with_fallback_async(game_name: str) -> GameData | None:
+    """Intenta obtener datos del juego con estrategia de fallback automático.
+    
+    Primero intenta en modo headless (invisible). Si falla, reintenta en modo
+    no-headless (visible) para evitar detección de bots.
+    
     Args:
         game_name: Nombre del juego a buscar.
-
+        
     Returns:
         Datos del juego si se encuentra, None en caso contrario.
-
-    Note:
-        Esta función maneja internamente las excepciones y devuelve None
-        en lugar de propagarlas para facilitar el uso de la API.
     """
+    # Primer intento: modo headless (invisible)
+    logging.debug(f"Intentando búsqueda en modo headless para: {game_name}")
+    try:
+        async with BrowserManager(headless=True) as browser:
+            page = await browser.new_page(user_agent=USER_AGENT)
+            scraper = HowLongToBeatScraper(page)
+            result = await scraper.search(game_name)
+            logging.info(f"Búsqueda exitosa en modo headless para: {game_name}")
+            return result
+    except (GameNotFoundError, ScraperError) as e:
+        logging.warning(f"Falló búsqueda headless para '{game_name}': {e}")
+    
+    # Segundo intento: modo no-headless (visible) como fallback
+    logging.debug(f"Intentando búsqueda en modo visible para: {game_name}")
+    try:
+        async with BrowserManager(headless=False) as browser:
+            page = await browser.new_page(user_agent=USER_AGENT)
+            scraper = HowLongToBeatScraper(page)
+            result = await scraper.search(game_name)
+            logging.info(f"Búsqueda exitosa en modo visible para: {game_name}")
+            return result
+    except GameNotFoundError:
+        logging.warning(f"El juego '{game_name}' no fue encontrado en ningún modo.")
+        return None
+    except ScraperError as e:
+        logging.error(f"Error en ambos modos para '{game_name}': {e}")
+        return None
+
+
+async def _get_game_data_async(game_name: str) -> GameData | None:
+    """Wrapper asíncrono para la lógica del scraper."""
     try:
         async with BrowserManager() as browser:
-            page = await browser.new_page()
+            page = await browser.new_page(user_agent=USER_AGENT)
             scraper = HowLongToBeatScraper(page)
             return await scraper.search(game_name)
     except GameNotFoundError:
         logging.warning(f"El juego '{game_name}' no fue encontrado.")
         return None
-    except (ScraperError, ValueError) as e:
+    except ScraperError as e:
         logging.error(
             f"No se pudieron obtener los datos para '{game_name}'. Causa: {e}"
         )
@@ -332,12 +326,38 @@ def get_game_stats(game_name: str) -> GameData | None:
         ...     print(f"{data.title}: {data.main_story}h")
         ... else:
         ...     print("Juego no encontrado")
-
-    Note:
-        Esta función bloquea hasta completar la operación. Para uso asíncrono,
-        utiliza directamente _get_game_data_async().
     """
     if not isinstance(game_name, str):
         raise TypeError("game_name debe ser una cadena de texto")
 
     return asyncio.run(_get_game_data_async(game_name))
+
+
+def get_game_stats_smart(game_name: str) -> GameData | None:
+    """Punto de entrada síncrono con estrategia de fallback automático.
+
+    Esta función intenta primero en modo headless (invisible) y si falla,
+    automáticamente reintenta en modo visible para evitar detección de bots.
+    Esto minimiza la molestia al usuario mientras mantiene la funcionalidad.
+
+    Args:
+        game_name: El nombre del juego a buscar.
+
+    Returns:
+        Un objeto GameData si se encuentra, None en caso contrario.
+
+    Example:
+        >>> data = get_game_stats_smart("The Witcher 3")
+        >>> if data:
+        ...     print(f"{data.title}: {data.main_story}h")
+        ... else:
+        ...     print("Juego no encontrado")
+
+    Note:
+        Esta función es recomendada sobre get_game_stats() ya que reduce
+        la necesidad de mostrar el navegador al usuario en la mayoría de casos.
+    """
+    if not isinstance(game_name, str):
+        raise TypeError("game_name debe ser una cadena de texto")
+
+    return asyncio.run(_get_game_data_with_fallback_async(game_name))
