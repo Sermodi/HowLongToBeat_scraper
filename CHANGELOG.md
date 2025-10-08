@@ -5,6 +5,25 @@ Todos los cambios notables de este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere al [Versionado Semántico](https://semver.org/lang/es/).
 
+## [1.1.1] - 2024-12-19
+
+### Corregido
+- **Selector CSS actualizado**: Corregido `TIME_CATEGORY_SELECTOR` para adaptarse a los cambios en la estructura HTML de HowLongToBeat
+- **Parsing de juegos tradicionales**: Resuelto problema donde juegos como "Celeste" y "Breath of the Wild" retornaban datos vacíos
+- **Compatibilidad con juegos Co-Op**: Mantenida funcionalidad para juegos con modos Solo/Co-Op como "Split Fiction" e "It Takes Two"
+- **Event loop mejorado**: Corregido manejo de bucle de eventos con `nest_asyncio` y `ThreadPoolExecutor`
+- **Tests actualizados**: Corregidas clases CSS en mocks de pruebas para reflejar la estructura actual del sitio web
+
+### Técnico
+- Selector actualizado de `'div[class*="GameCard_search_list_tidbit_short__"], div[class*="GameCard_search_list_tidbit_long__"]'` a `'div[class*="GameCard_search_list_tidbit__"]'`
+- Clases CSS en tests actualizadas a `GameCard_search_list_details__yJrue` y `GameCard_search_list_tidbit__0r_OP`
+- Eliminados archivos de debug temporales del repositorio
+
+### Verificado
+- ✅ Juegos tradicionales: "Celeste", "Hades", "Portal 2", "Breath of the Wild"
+- ✅ Juegos Co-Op: "Split Fiction", "It Takes Two", "A Way Out"
+- ✅ Tests: 38 pasados, 2 omitidos
+
 ## [1.0.4] - 2024-01-XX
 
 ### Añadido
