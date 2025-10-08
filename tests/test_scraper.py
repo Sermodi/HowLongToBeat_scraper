@@ -161,6 +161,30 @@ class TestHowLongToBeatScraper:
         assert result.title == "Test Game"
         assert result.main_story == "10"
 
+    def test_parse_game_data_with_modes(self):
+        """Test de parsing con categorías adicionales Solo y Co-Op."""
+        html = """
+        <div class="GameCard_search_list_details">
+            <a>Modes Test Game</a>
+            <div class="GameCard_search_list_tidbit__">Solo</div>
+            <div class="GameCard_search_list_tidbit__">14½ Hours</div>
+            <div class="GameCard_search_list_tidbit__">Co-Op</div>
+            <div class="GameCard_search_list_tidbit__">4 Hours</div>
+        </div>
+        """
+        soup = BeautifulSoup(html, "lxml")
+        game_element = soup.select_one('div[class*="GameCard_search_list_details"]')
+
+        mock_page = MagicMock()
+        scraper = HowLongToBeatScraper(mock_page)
+
+        result = scraper._parse_game_data(game_element)
+
+        assert isinstance(result, GameData)
+        assert result.title == "Modes Test Game"
+        assert result.solo == "14.5"
+        assert result.co_op == "4"
+
     def test_parse_game_data_error(self):
         """Test de error en el parsing."""
         mock_page = MagicMock()
@@ -178,14 +202,14 @@ class TestHowLongToBeatScraper:
         return """
         <html>
             <body>
-                <div class="GameCard_search_list_details">
+                <div class="GameCard_search_list_details__yJrue">
                     <a>Test Game</a>
-                    <div class="GameCard_search_list_tidbit__">Main Story</div>
-                    <div class="GameCard_search_list_tidbit__">10 Hours</div>
-                    <div class="GameCard_search_list_tidbit__">Main + Extra</div>
-                    <div class="GameCard_search_list_tidbit__">15 Hours</div>
-                    <div class="GameCard_search_list_tidbit__">Completionist</div>
-                    <div class="GameCard_search_list_tidbit__">20 Hours</div>
+                    <div class="GameCard_search_list_tidbit__0r_OP">Main Story</div>
+                    <div class="GameCard_search_list_tidbit__0r_OP">10 Hours</div>
+                    <div class="GameCard_search_list_tidbit__0r_OP">Main + Extra</div>
+                    <div class="GameCard_search_list_tidbit__0r_OP">15 Hours</div>
+                    <div class="GameCard_search_list_tidbit__0r_OP">Completionist</div>
+                    <div class="GameCard_search_list_tidbit__0r_OP">20 Hours</div>
                 </div>
             </body>
         </html>
@@ -196,10 +220,10 @@ class TestHowLongToBeatScraper:
         return """
         <html>
             <body>
-                <div class="GameCard_search_list_details">
+                <div class="GameCard_search_list_details__yJrue">
                     <a>Test Game</a>
-                    <div class="GameCard_search_list_tidbit__">Main Story</div>
-                    <div class="GameCard_search_list_tidbit__">10½ Hours</div>
+                    <div class="GameCard_search_list_tidbit__0r_OP">Main Story</div>
+                    <div class="GameCard_search_list_tidbit__0r_OP">10½ Hours</div>
                 </div>
             </body>
         </html>

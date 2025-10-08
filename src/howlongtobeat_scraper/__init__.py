@@ -17,7 +17,7 @@ from .api import (
     get_game_stats_smart,
 )
 
-__version__ = "1.0.4"
+__version__ = "1.1.0"
 __author__ = "Sermodi"
 __email__ = "sermodsoftware@gmail.com"
 

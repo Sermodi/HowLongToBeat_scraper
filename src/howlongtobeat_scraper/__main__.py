@@ -11,7 +11,7 @@ import logging
 import sys
 from typing import NoReturn
 
-from .api import get_game_stats
+from .api import get_game_stats_smart
 
 
 def setup_logging(verbose: bool) -> None:
@@ -40,6 +40,11 @@ def print_game_data(game_name: str, game_data: object) -> None:
         print(f"  Historia Principal: {game_data.main_story or 'N/A'}")
         print(f"  Historia + Extras: {game_data.main_extra or 'N/A'}")
         print(f"  Completista: {game_data.completionist or 'N/A'}")
+        # Campos adicionales cuando existan en la tarjeta del juego
+        if getattr(game_data, "solo", None):
+            print(f"  Solo: {game_data.solo}")
+        if getattr(game_data, "co_op", None):
+            print(f"  Co-Op: {game_data.co_op}")
     else:
         print(f"No se encontraron datos para '{game_name}'.")
     print()  # Línea en blanco para separar resultados
@@ -71,7 +76,7 @@ def create_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--version",
         action="version",
-        version="%(prog)s 1.0.0",
+        version="%(prog)s 1.1.0",
         help="Muestra la versión del programa.",
     )
     return parser
@@ -94,7 +99,7 @@ def main() -> NoReturn:
         logging.info(f"--- Buscando: {game_name} ---")
 
         try:
-            game_data = get_game_stats(game_name)
+            game_data = get_game_stats_smart(game_name)
             print_game_data(game_name, game_data)
 
             if game_data:

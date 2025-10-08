@@ -13,8 +13,11 @@ This package provides both a command-line tool and a Python API to look up a gam
 
 -   **Command-Line Interface (CLI)**: Get game times directly from your terminal.
 -   **Python API**: Easily integrate HowLongToBeat functionality into your own Python scripts.
+-   **Co-Op Game Support**: Automatically detects and extracts both Solo and Co-Op playtimes for cooperative games.
+-   **Traditional Game Support**: Handles standard games with Main Story, Main + Extras, and Completionist times.
 -   **Asynchronous**: Built on `asyncio` and `playwright` for efficient performance.
 -   **Structured Data**: Returns data in a `dataclass` for easy access.
+-   **Robust Parsing**: Updated selectors ensure compatibility with HowLongToBeat's current website structure.
 
 ## Installation
 
@@ -56,7 +59,7 @@ python -m howlongtobeat_scraper "The Witcher 3: Wild Hunt"
 
 **Note**: Use the module format above as it works consistently across all platforms.
 
-**Example Output:**
+**Example Output (Traditional Game):**
 
 ```
 Searching for "The Witcher 3: Wild Hunt"...
@@ -64,6 +67,15 @@ Title: The Witcher 3: Wild Hunt
 - Main Story: 51.5 hours
 - Main + Extras: 103 hours
 - Completionist: 172 hours
+```
+
+**Example Output (Co-Op Game):**
+
+```
+Searching for "It Takes Two"...
+Title: It Takes Two
+- Solo: 14 hours
+- Co-Op: 14 hours
 ```
 
 ### Python API
@@ -79,6 +91,7 @@ from __future__ import annotations
 from howlongtobeat_scraper.api import get_game_stats_smart, GameData
 
 def main():
+    # Example with traditional game
     game_name = "Celeste"
     print(f"--- Fetching data for: {game_name} ---")
 
@@ -98,8 +111,22 @@ def main():
     except Exception as e:
         print(f"An error occurred: {e}")
 
-if __name__ == "__main__":
-    main()
+    # Example with Co-Op game
+    coop_game = "It Takes Two"
+    print(f"\n--- Fetching data for: {coop_game} ---")
+    
+    try:
+        coop_data: GameData | None = get_game_stats_smart(coop_game)
+        
+        if coop_data:
+            print("API call successful. Data received:")
+            print(f"  Title: {coop_data.title}")
+            print(f"  Solo: {coop_data.solo} hours")
+            print(f"  Co-Op: {coop_data.coop} hours")
+        else:
+            print("No data found for the game.")
+    except Exception as e:
+        print(f"An error occurred: {e}")
 ```
 
 #### Manual control: `get_game_stats`
