@@ -5,6 +5,17 @@ Todos los cambios notables de este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere al [Versionado Semántico](https://semver.org/lang/es/).
 
+## [1.1.2] - 2024-10-08
+
+### Corregido
+- **HOTFIX**: Corregida la clase `GameData` en PyPI para incluir los campos `co_op` y `solo`
+- La versión 1.1.1 en PyPI no incluía correctamente estos campos nuevos
+- Ahora la clase `GameData` expone correctamente todos los atributos: `title`, `main_story`, `main_extra`, `completionist`, `solo`, `co_op`
+
+### Notas técnicas
+- Esta es una corrección crítica para usuarios que dependen de los campos Co-Op y Solo
+- No hay cambios funcionales, solo corrección del empaquetado
+
 ## [1.1.1] - 2024-12-19
 
 ### Corregido
