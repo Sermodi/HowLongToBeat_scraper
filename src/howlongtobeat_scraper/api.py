@@ -9,6 +9,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from dataclasses import dataclass
+import re
 from typing import Final
 
 from bs4 import BeautifulSoup, Tag
@@ -27,7 +28,7 @@ USER_AGENT: Final[str] = (
     "AppleWebKit/537.36 (KHTML, like Gecko) "
     "Chrome/91.0.4472.124 Safari/537.36"
 )
-GAME_CARD_SELECTOR: Final[str] = 'div[class*="GameCard_search_list_details"]'
+GAME_CARD_SELECTOR: Final[str] = 'div[class*="GameCard_search_list_details__"]'
 TIME_CATEGORY_SELECTOR: Final[str] = 'div[class*="GameCard_search_list_tidbit__"]'
 SELECTOR_TIMEOUT: Final[int] = 15000
 
@@ -59,6 +60,10 @@ class GameData:
     main_story: str | None = None
     main_extra: str | None = None
     completionist: str | None = None
+    # Campos adicionales según modos cuando estén disponibles
+    # Algunos juegos en HLTB exponen tiempos bajo etiquetas como "Solo" y "Co-Op".
+    solo: str | None = None
+    co_op: str | None = None
 
 
 class ScraperError(Exception):
@@ -185,7 +190,54 @@ class HowLongToBeatScraper:
                     f"No se encontraron resultados para '{game_name}'."
                 )
 
-            return self._parse_game_data(game_element)
+            # Loguear href del primer resultado para diagnóstico
+            _anchor = game_element.select_one("a")
+            _href = _anchor.get("href") if _anchor else None
+            logging.debug(f"Primer resultado href: {_href}")
+
+            parsed = self._parse_game_data(game_element)
+
+            # Si no hay tiempos comunes ni modos, intentamos fallback a la página de detalle
+            if not any(
+                [
+                    parsed.main_story,
+                    parsed.main_extra,
+                    parsed.completionist,
+                    getattr(parsed, "solo", None),
+                    getattr(parsed, "co_op", None),
+                ]
+            ):
+                anchor = game_element.select_one("a")
+                href = anchor.get("href") if anchor else None
+                if href:
+                    detail_url = (
+                        f"https://howlongtobeat.com{href}"
+                        if href.startswith("/")
+                        else href
+                    )
+                    try:
+                        logging.debug(f"Navegando a detalle: {detail_url}")
+                        await self._page.goto(detail_url, wait_until="domcontentloaded")
+                        # Dar tiempo adicional por si hay carga dinámica
+                        await self._page.wait_for_timeout(1500)
+                        detail_content = await self._page.content()
+                        modes = self._extract_modes_from_detail(detail_content)
+                        if modes:
+                            parsed.solo = modes.get("Solo")
+                            parsed.co_op = modes.get("Co-Op")
+                            logging.debug(
+                                f"Fallback detalle: modos extraídos para '{parsed.title}': {modes}"
+                            )
+                        else:
+                            logging.debug(
+                                f"Fallback detalle: no se encontraron modos para '{parsed.title}'."
+                            )
+                    except Exception as e:
+                        logging.warning(
+                            f"No se pudo extraer modos desde detalle para '{parsed.title}': {e}"
+                        )
+
+            return parsed
 
         except TimeoutError:
             logging.warning(f"Timeout esperando los resultados para '{game_name}'.")
@@ -200,6 +252,32 @@ class HowLongToBeatScraper:
                 exc_info=True,
             )
             raise ScraperError(f"Fallo al obtener datos para '{game_name}'.") from e
+
+    def _extract_modes_from_detail(self, html: str) -> dict[str, str]:
+        """Extrae tiempos para modos como Solo y Co-Op desde la página de detalle.
+
+        Esta función busca patrones textuales como "Solo 14½ Hours" o "Co-Op 4 Hours".
+
+        Args:
+            html: Contenido HTML de la página de detalle.
+
+        Returns:
+            Diccionario con claves "Solo" y/o "Co-Op" y sus tiempos normalizados.
+        """
+        try:
+            soup = BeautifulSoup(html, "lxml")
+            text = soup.get_text(separator=" ", strip=True)
+            pattern = re.compile(r"(Solo|Co-Op)\s*([0-9]+(?:½)?(?:\.[0-9]+)?)\s*Hours", re.IGNORECASE)
+            modes: dict[str, str] = {}
+            for match in pattern.finditer(text):
+                category = match.group(1).capitalize()
+                value = match.group(2)
+                value = value.replace("½", ".5")
+                modes["Solo" if category.lower() == "solo" else "Co-Op"] = value
+            return modes
+        except Exception as e:
+            logging.debug(f"Error extrayendo modos desde detalle: {e}")
+            return {}
 
     def _parse_game_data(self, game_element: Tag) -> GameData:
         """Parsea el elemento HTML de la tarjeta del juego para extraer los datos.
@@ -236,6 +314,9 @@ class HowLongToBeatScraper:
                 main_story=times.get("Main Story"),
                 main_extra=times.get("Main + Extra"),
                 completionist=times.get("Completionist"),
+                # Modos adicionales, cuando existen en la tarjeta
+                solo=times.get("Solo"),
+                co_op=times.get("Co-Op"),
             )
         except Exception as e:
             logging.error(f"Error al parsear datos del juego: {e}", exc_info=True)
@@ -361,4 +442,14 @@ def get_game_stats_smart(game_name: str) -> GameData | None:
     if not isinstance(game_name, str):
         raise TypeError("game_name debe ser una cadena de texto")
 
-    return asyncio.run(_get_game_data_with_fallback_async(game_name))
+    try:
+        # Intentar obtener el event loop actual
+        loop = asyncio.get_running_loop()
+        # Si ya hay un loop corriendo, usar ThreadPoolExecutor
+        import concurrent.futures
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            future = executor.submit(asyncio.run, _get_game_data_with_fallback_async(game_name))
+            return future.result()
+    except RuntimeError:
+        # No hay event loop corriendo, usar asyncio.run normalmente
+        return asyncio.run(_get_game_data_with_fallback_async(game_name))
